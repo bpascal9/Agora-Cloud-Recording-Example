@@ -16,14 +16,20 @@ func healthCheck(c *fiber.Ctx) error {
 }
 
 func main() {
-	utils.ImportEnv()
+	// Set global configuration
+	viper.SetConfigName("config.json")
+	viper.SetConfigType("json")
+	viper.AddConfigPath(".")
+
+	if err := viper.ReadInConfig(); err != nil {
+		log.Panicln(fmt.Errorf("fatal error config file: %s", err))
+	}
+	viper.AutomaticEnv()
 
 	app := fiber.New()
-	app.Use(logger.New())
-	app.Use(recover.New())
 	app.Use(cors.New())
 	app.Get("/", healthCheck)
-	router.MountRoutes(app)
+	api.MountRoutes(app)
 
 	app.Listen(":" + viper.GetString("PORT"))
 }
